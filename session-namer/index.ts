@@ -9,6 +9,8 @@
  *   - rename             Force rename now
  *   - config <key> <val> Update a config parameter
  *   - on / off           Enable / disable auto-renaming
+ *
+ * Syncs with recap plugin: triggers naming on the same agent_end event.
  */
 
 import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
@@ -28,7 +30,7 @@ interface NamerConfig {
 	maxLength: number;        // bytes, default 40
 	separator: string;        // default " | "
 	autoRename: boolean;      // auto rename on threshold, default true
-	renameOnCompact: boolean; // rename when compaction fires, default true
+	renameOnCompact: boolean; // rename synced with recap on agent_end, default true
 }
 
 const CONFIG_FILE = "session-namer.json";
@@ -224,15 +226,14 @@ export default function (pi: ExtensionAPI) {
 		state = restoreState(ctx.sessionManager.getEntries());
 	});
 
-	// Check on every turn end
-	pi.on("turn_end", (_event, ctx) => {
-		checkAndRename(ctx, "size threshold");
-	});
-
-	// Sync with compaction
-	pi.on("session_before_compact", (_event, ctx) => {
-		if (!cfg.enabled || !cfg.renameOnCompact) return;
-		doRename(ctx, "compaction");
+	// Sync with recap: trigger on agent_end (same event recap uses)
+	pi.on("agent_end", (_event, ctx) => {
+		if (!cfg.enabled) return;
+		if (cfg.renameOnCompact) {
+			doRename(ctx, "sync with recap");
+		} else if (cfg.autoRename) {
+			checkAndRename(ctx, "size threshold");
+		}
 	});
 
 	// /session-namer command

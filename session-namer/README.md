@@ -6,8 +6,8 @@
 
 | 时机 | 条件 | 说明 |
 |---|---|---|
-| 每轮对话结束 | session 文件 > `sizeThreshold` 且大于上次命名时的大小 | 自动检测 |
-| compact 前 | 与 recap/compact 同步 | 捕捉完整上下文后命名 |
+| agent_end（与 recap 同步） | session 文件 > `sizeThreshold` | 与 recap 在同一事件触发 |
+| agent_end（与 recap 同步） | `renameOnCompact` 开启时 | 每次对话回合结束都重新评估 |
 
 两者都受 `enabled` 和各自的开关控制。
 
@@ -43,7 +43,7 @@ API接口调试 | 权限模块开发
 | `maxLength` | number | 40 | 名字最大字节长度 |
 | `separator` | string | ` \| ` | 多主题分隔符 |
 | `autoRename` | boolean | true | 是否在文件超过阈值时自动命名 |
-| `renameOnCompact` | boolean | true | 是否与 compact 同步命名 |
+| `renameOnCompact` | boolean | true | 是否与 recap 同步在 agent_end 时命名 |
 | `enabled` | boolean | true | 总开关 |
 
 ### 修改参数示例
